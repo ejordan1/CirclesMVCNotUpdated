@@ -85,7 +85,7 @@ namespace Circles_MVC
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
-
+            app.UseMvc();
             
         }
     }
