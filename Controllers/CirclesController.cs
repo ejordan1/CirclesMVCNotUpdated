@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Linq;
+using System;
 
 namespace Circles_MVC.Controllers
 {
@@ -18,11 +20,13 @@ namespace Circles_MVC.Controllers
             _userManager = userManager;
         }
 
-
-        public IActionResult Index()
+        public async Task<ActionResult> Index()
         {
+            var userId = this.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUser = await _userManager.FindByIdAsync(userId);
             var allCircles = Circle.GetAllCircles();
-            return View(allCircles);
+            var yourCircles = allCircles.Where(x => x.ApplicationUserId == currentUser.Id);
+            return View(yourCircles);
         }
 
         // public IActionResult IndexNext()
@@ -88,7 +92,14 @@ namespace Circles_MVC.Controllers
             {
                 return RedirectToAction("Login", "Account");
             }
+        }
 
+        [HttpPost]
+        public ActionResult RemoveUser(int joinId, int circleId)
+        {
+            Console.WriteLine("REMOVE USER: " + joinId + " is id and cI: " + circleId);
+            Circle.RemoveUser(joinId);
+            return RedirectToAction("Details", "Circles", new { id = circleId });
         }
 
         [HttpPost]
@@ -97,6 +108,7 @@ namespace Circles_MVC.Controllers
             Circle.EditCircle(id, circle);
             return RedirectToAction("Index");
         }
+
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Errors()
